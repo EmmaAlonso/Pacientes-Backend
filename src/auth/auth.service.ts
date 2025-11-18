@@ -48,7 +48,7 @@ login(user: any) {
   this.logger.debug(`Generando token para usuario: ${user.email}, Rol: ${rol}`);
 
   const payload = {
-    sub: user.id,
+    id: user.id,
     email: user.email,
     rol: rol, // 👈 CORREGIDO: antes decía "role"
     nombre: user.nombre,

@@ -1,8 +1,9 @@
-import { Controller, Post, Body, UnauthorizedException } from '@nestjs/common';
+import { Controller, Post, Body, UnauthorizedException, Get, UseGuards, Req } from '@nestjs/common';
 import { AuthService } from './auth.service';
 import { UsuariosService } from '../usuarios/services/usuarios.service';
 import { Rol } from '../common/enums/rol.enum';
 import { ApiTags, ApiOperation, ApiResponse } from '@nestjs/swagger';
+import { JwtAuthGuard } from '../common/guards/jwt-auth.guard';
 
 @ApiTags('auth')
 @Controller('auth')
@@ -37,5 +38,14 @@ export class AuthController {
   ) {
     const user = await this.usuariosService.create(body);
     return this.authService.login(user);
+  }
+
+  // 🚀 NUEVO ENDPOINT: Obtener datos reales del usuario autenticado
+  @UseGuards(JwtAuthGuard)
+  @Get('me')
+  @ApiOperation({ summary: 'Obtener información del usuario actual' })
+  @ApiResponse({ status: 200, description: 'Datos del usuario autenticado' })
+  me(@Req() req) {
+    return req.user; // viene del JWT
   }
 }
