@@ -17,7 +17,6 @@ import { Patient } from './patients/entities/patient.entity';
 import { ConsultasModule } from './consultas/consultas.module';
 import { TypeOrmModule } from '@nestjs/typeorm';
 
-
 @Module({
   imports: [
     ConfigModule.forRoot(),
@@ -28,11 +27,11 @@ import { TypeOrmModule } from '@nestjs/typeorm';
     Patient,
     Medico,
     Cita,
-    UsuariosModule,    
-  PatientsModule,
-  MedicosModule,
-  CitasModule,   
-    PaymentsModule,    
+    UsuariosModule,
+    PatientsModule,
+    MedicosModule,
+    CitasModule,
+    PaymentsModule,
     LogsModule,
     AuthModule,
   ],
