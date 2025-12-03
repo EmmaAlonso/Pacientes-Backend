@@ -1,4 +1,4 @@
-import { Injectable, Logger, ConflictException } from '@nestjs/common';
+import { Injectable, Logger, ConflictException, NotFoundException } from '@nestjs/common';
 import { JwtService } from '@nestjs/jwt';
 import { UsuariosService } from '../usuarios/services/usuarios.service';
 import * as bcrypt from 'bcrypt';
@@ -6,6 +6,7 @@ import { Rol } from '../common/enums/rol.enum';
 import { Usuario } from '../usuarios/entities/usuario.entity';
 import { Repository } from 'typeorm';
 import { InjectRepository } from '@nestjs/typeorm';
+import { MedicosService } from '../medicos/services/medicos.service';
 
 function omitPassword<T extends { password?: string }>(
   user: T,
@@ -21,49 +22,52 @@ export class AuthService {
   constructor(
     private readonly usuariosService: UsuariosService,
     private readonly jwtService: JwtService,
+
     @InjectRepository(Usuario)
     private readonly usuarioRepository: Repository<Usuario>,
+
+    // 👈 AHORA SÍ: ruta correcta según tu estructura real
+    private readonly medicosService: MedicosService,
   ) {}
 
-  // 🔹 Validar credenciales al iniciar sesión
+  // 🔹 Validar usuario al iniciar sesión
   async validateUser(email: string, password: string) {
     const user = await this.usuariosService.findByEmail(email);
-    if (!user) {
-      this.logger.warn(`Usuario no encontrado: ${email}`);
-      return null;
-    }
+    if (!user) return null;
 
     const isPasswordValid = await bcrypt.compare(password, user.password);
-    if (!isPasswordValid) {
-      this.logger.warn(`Contraseña inválida para usuario: ${email}`);
-      return null;
-    }
+    if (!isPasswordValid) return null;
 
-    this.logger.debug(`Usuario autenticado: ${email}, Rol: ${user.rol}`);
     return omitPassword(user);
   }
 
-  // 🔹 Login: genera el token JWT
-  login(user: any) {
+  // 🔹 Login del sistema
+  async login(user: any) {
     const rol = String(user.rol).toUpperCase() as Rol;
 
-    this.logger.debug(
-      `Generando token para usuario: ${user.email}, Rol: ${rol}`,
-    );
+    // Para MEDICO, le agregamos su medicoId a su JWT
+    let medicoId: number | null = null;
+
+    if (rol === 'MEDICO') {
+      try {
+        const medico = await this.medicosService.findByUsuarioId(user.id);
+        medicoId = medico.id;
+      } catch (error) {
+        this.logger.warn(`El usuario ${user.email} tiene rol MEDICO pero no tiene registro en medicos.`);
+      }
+    }
 
     const payload = {
-      sub: user.id, // 👈 Cambiado de "id" a "sub" (estándar JWT)
+      sub: user.id,
       email: user.email,
-      rol: rol,
+      rol,
+      medicoId,   // 👈 ESTO se usará para registrar pacientes
       nombre: user.nombre,
       activo: user.activo,
       createdAt: user.createdAt,
     };
 
-    this.logger.debug(`Payload JWT: ${JSON.stringify(payload)}`);
-
     const token = this.jwtService.sign(payload);
-    this.logger.debug(`Token generado correctamente`);
 
     return {
       access_token: token,
@@ -71,22 +75,18 @@ export class AuthService {
         id: user.id,
         email: user.email,
         nombre: user.nombre,
-        rol: rol,
+        rol,
+        medicoId,   // 👈 Lo devolvemos también al frontend
         activo: user.activo,
         createdAt: user.createdAt,
       },
     };
   }
 
-  // 🔹 Registro con rol (para PACIENTE o MÉDICO)
+  // 🔹 Registro de usuarios con rol
   async registerWithRole(data: Partial<Usuario>, rol: Rol) {
-    if (!data.email) {
-      throw new ConflictException('El correo es obligatorio');
-    }
-
-    if (!data.password) {
-      throw new ConflictException('La contraseña es obligatoria');
-    }
+    if (!data.email) throw new ConflictException('El correo es obligatorio');
+    if (!data.password) throw new ConflictException('La contraseña es obligatoria');
 
     const existing = await this.usuarioRepository.findOne({
       where: { email: data.email },
@@ -103,10 +103,8 @@ export class AuthService {
     });
 
     const savedUser = await this.usuarioRepository.save(usuario);
-
-    this.logger.log(`Usuario registrado: ${savedUser.email} con rol ${rol}`);
-
     const { password, ...usuarioSinPassword } = savedUser;
+
     return usuarioSinPassword;
   }
 }

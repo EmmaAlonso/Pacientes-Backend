@@ -8,12 +8,13 @@ import { UsuariosModule } from '../usuarios/usuarios.module';
 import { ConfigModule, ConfigService } from '@nestjs/config';
 import { PassportModule } from '@nestjs/passport';
 import { JwtStrategy } from './strategies/jwt.strategy';
-
+import { MedicosModule } from '../medicos/medicos.module';
 
 @Module({
   imports: [
     ConfigModule,
     UsuariosModule,
+    MedicosModule,
     TypeOrmModule.forFeature([Usuario]),
     PassportModule.register({ defaultStrategy: 'jwt' }), // 👈 importante
     JwtModule.registerAsync({

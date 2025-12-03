@@ -1,6 +1,16 @@
-import { IsNotEmpty, IsString, IsOptional, IsNumber } from 'class-validator';
+import { IsNotEmpty, IsString, IsOptional, IsEmail, MinLength } from 'class-validator';
 
-export class CreateMedicoDto {
+export class CreateMedicoWithUserDto {
+  // Datos del usuario
+  @IsNotEmpty()
+  @IsEmail()
+  email: string;
+
+  @IsNotEmpty()
+  @MinLength(6)
+  password: string;
+
+  // Datos del médico
   @IsNotEmpty()
   @IsString()
   nombre: string;
@@ -28,8 +38,4 @@ export class CreateMedicoDto {
   @IsOptional()
   @IsString()
   consultorio?: string;
-
-  @IsNotEmpty()
-  @IsNumber()
-  usuarioId: number;   // 👈 RELACIÓN AL USUARIO YA CREADO
 }

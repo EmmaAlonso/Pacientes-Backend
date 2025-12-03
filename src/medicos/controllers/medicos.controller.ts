@@ -1,4 +1,4 @@
-import { Controller, Get, Post, Body, Patch, Param, Delete, UseGuards } from '@nestjs/common';
+import { Controller, Get, Post, Body, Patch, Param, Delete, UseGuards, Req, BadRequestException } from '@nestjs/common';
 import { MedicosService } from '../services/medicos.service';
 import { CreateMedicoDto } from '../dto/create-medico.dto';
 import { UpdateMedicoDto } from '../dto/update-medico.dto';
@@ -24,10 +24,27 @@ export class MedicosController {
     return this.medicosService.findAll();
   }
 
+  // Endpoint público de comprobación para verificar conectividad y baseURL
+  @Get('ping')
+  ping() {
+    return { ok: true, path: '/medicos/ping' };
+  }
+
+  @Roles('ADMIN', 'MEDICO')
+  @Get('me')
+me(@Req() req) {
+  return this.medicosService.findByUsuarioId(req.user.id);
+}
+
+
   @Roles('ADMIN', 'MEDICO')
   @Get(':id')
   findOne(@Param('id') id: string) {
-    return this.medicosService.findOne(+id);
+    const numericId = Number(id);
+    if (Number.isNaN(numericId)) {
+      throw new BadRequestException('ID de médico inválido');
+    }
+    return this.medicosService.findOne(numericId);
   }
 
   @Roles('ADMIN', 'MEDICO')

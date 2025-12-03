@@ -13,9 +13,10 @@ export class CreatePatientDto {
   @IsString()
   apellidoMaterno?: string;
 
-  @IsNotEmpty()
-  @IsEmail()
-  email: string;
+  @IsOptional()
+@IsEmail()
+email?: string;
+
 
   @IsOptional()
   @IsString()
@@ -32,6 +33,11 @@ export class CreatePatientDto {
   @IsOptional()
   @IsString()
   ocupacion?: string;
+
+  @IsOptional()
+@IsNumber()
+medicoId?: number;
+
 
   usuario?: { id: number };
 

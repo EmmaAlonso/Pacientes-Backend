@@ -1,8 +1,18 @@
-import { Entity, PrimaryGeneratedColumn, Column, CreateDateColumn, UpdateDateColumn, OneToMany } from 'typeorm';
+import {
+  Entity,
+  PrimaryGeneratedColumn,
+  Column,
+  CreateDateColumn,
+  UpdateDateColumn,
+  OneToMany,
+  ManyToOne,
+  JoinColumn
+} from 'typeorm';
 
 import { Usuario } from '../../usuarios/entities/usuario.entity';
-import { ManyToOne, JoinColumn } from 'typeorm';
 import { Consulta } from '../../consultas/entities/consulta.entity';
+import { Patient } from '../../patients/entities/patient.entity';
+
 
 @Entity('medicos')
 export class Medico {
@@ -10,11 +20,16 @@ export class Medico {
   id: number;
 
   @ManyToOne(() => Usuario, (usuario) => usuario.medicos, { eager: true })
-@JoinColumn({ name: 'usuario_id' })
-usuario: Usuario;
+  @JoinColumn({ name: 'usuario_id' })
+  usuario: Usuario;
 
- @OneToMany(() => Consulta, (consulta) => consulta.medico)
+  @OneToMany(() => Consulta, (consulta) => consulta.medico)
   consultas: Consulta[];
+
+@OneToMany(() => Patient, patient => patient.medico)
+pacientes: Patient[];
+
+
 
   @Column({ type: 'varchar', length: 255 })
   nombre: string;
@@ -31,8 +46,10 @@ usuario: Usuario;
   @Column({ type: 'varchar', length: 255, nullable: true })
   direccion?: string;
 
-  @Column({ type: 'varchar', length: 255, unique: true })
-  email: string;
+  // ❌ Eliminado el email duplicado
+  // El email viene desde usuario.email
+  // @Column({ type: 'varchar', length: 255, unique: true })
+  // email: string;
 
   @Column({ type: 'varchar', length: 50, nullable: true })
   telefono?: string;
