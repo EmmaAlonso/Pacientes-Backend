@@ -1,4 +1,8 @@
-import { Injectable, NotFoundException, BadRequestException } from '@nestjs/common';
+import {
+  Injectable,
+  NotFoundException,
+  BadRequestException,
+} from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import * as bcrypt from 'bcrypt';
@@ -21,30 +25,34 @@ export class MedicosService {
   ) {}
 
   async create(createMedicoDto: CreateMedicoDto): Promise<Medico> {
-  const { usuarioId, ...medicoData } = createMedicoDto;
+    const { usuarioId, ...medicoData } = createMedicoDto;
 
-  // 1) Verificar que el usuario exista
-  const usuario = await this.usuariosRepository.findOne({
-    where: { id: usuarioId },
-  });
+    const usuario = await this.usuariosRepository.findOne({
+      where: { id: usuarioId },
+    });
 
-  if (!usuario) {
-    throw new BadRequestException('El usuarioId no existe');
+    if (!usuario) {
+      throw new BadRequestException('El usuarioId no existe');
+    }
+
+    const nuevoMedico = this.medicosRepository.create({
+      ...medicoData,
+      usuario,
+    });
+
+    return await this.medicosRepository.save(nuevoMedico);
   }
-
-  // 2) Crear médico asociado al usuario
-  const nuevoMedico = this.medicosRepository.create({
-    ...medicoData,
-    usuario,
-  });
-
-  return await this.medicosRepository.save(nuevoMedico);
-}
-
 
   async findAll(): Promise<Medico[]> {
     return this.medicosRepository.find({
       relations: ['usuario'],
+    });
+  }
+
+  // 🔹 Solo retorna datos públicos para pacientes
+  async findPublic(): Promise<Partial<Medico>[]> {
+    return this.medicosRepository.find({
+      select: ['id', 'nombre', 'apellidoPaterno', 'apellidoMaterno', 'especialidad'],
     });
   }
 
@@ -74,20 +82,18 @@ export class MedicosService {
     return await this.medicosRepository.remove(medico);
   }
 
+  async findByUsuarioId(usuarioId: number): Promise<Medico> {
+    const medico = await this.medicosRepository.findOne({
+      where: { usuario: { id: usuarioId } },
+      relations: ['usuario'],
+    });
 
-   async findByUsuarioId(usuarioId: number): Promise<Medico> {
-  const medico = await this.medicosRepository.findOne({
-    where: { usuario: { id: usuarioId } },
-    relations: ['usuario'],
-  });
+    if (!medico) {
+      throw new NotFoundException(
+        `No existe médico asociado al usuario con ID ${usuarioId}`,
+      );
+    }
 
-  if (!medico) {
-    throw new NotFoundException(
-      `No existe médico asociado al usuario con ID ${usuarioId}`,
-    );
+    return medico;
   }
-
-  return medico;
-}
-
 }

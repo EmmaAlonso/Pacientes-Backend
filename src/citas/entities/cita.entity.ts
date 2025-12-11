@@ -21,11 +21,19 @@ export class Cita {
   @Column({ type: 'timestamp', nullable: true })
   fechaCita?: Date;
 
-  @ManyToOne(() => Patient, { nullable: false })
+  // 🔹 Relación con el paciente (carga automática de datos)
+  @ManyToOne(() => Patient, patient => patient.citas, {
+    eager: true, // ✅ Carga automáticamente la información del paciente
+    nullable: false,
+  })
   @JoinColumn({ name: 'patient_id' })
   patient: Patient;
 
-  @ManyToOne(() => Medico, { nullable: false })
+  // 🔹 Relación con el médico (carga automática de datos)
+  @ManyToOne(() => Medico, medico => medico.citas, {
+    eager: true, // ✅ Carga automáticamente la información del médico
+    nullable: false,
+  })
   @JoinColumn({ name: 'medico_id' })
   medico: Medico;
 
@@ -42,8 +50,7 @@ export class Cita {
   telefono?: string;
 
   @Column({ type: 'varchar', length: 20, default: 'pendiente' })
-estado: string;
-
+  estado: string;
 
   @CreateDateColumn({ type: 'timestamp', name: 'created_at' })
   createdAt: Date;

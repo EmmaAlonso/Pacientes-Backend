@@ -63,7 +63,7 @@ export class Patient {
   @Column({ type: 'varchar', length: 255, nullable: true })
   apellidoMaterno?: string;
 
-  @Column({ type: 'varchar', length: 255, unique: true })
+  @Column({ type: 'varchar', length: 255, nullable: true })
   email: string;
 
   @Column({ type: 'varchar', length: 255, nullable: true })
@@ -92,4 +92,6 @@ export class Patient {
 
   @UpdateDateColumn({ type: 'timestamp', name: 'updated_at' })
   updatedAt: Date;
+
+  
 }

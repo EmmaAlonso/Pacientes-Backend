@@ -4,6 +4,7 @@ import { TypeOrmModule } from '@nestjs/typeorm';
 
 import { AppController } from './app.controller';
 import { AppService } from './app.service';
+import { DebugController } from './common/controllers/debug.controller';
 
 import { DatabaseModule } from './database/database.module';
 
@@ -46,7 +47,7 @@ import { Consulta } from './consultas/entities/consulta.entity';
     AuthModule,
     ConsultasModule,
   ],
-  controllers: [AppController],
+  controllers: [AppController, DebugController],
   providers: [AppService],
 })
 export class AppModule {}

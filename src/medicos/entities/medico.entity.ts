@@ -12,7 +12,7 @@ import {
 import { Usuario } from '../../usuarios/entities/usuario.entity';
 import { Consulta } from '../../consultas/entities/consulta.entity';
 import { Patient } from '../../patients/entities/patient.entity';
-
+import { Cita } from '../../citas/entities/cita.entity';
 
 @Entity('medicos')
 export class Medico {
@@ -57,9 +57,16 @@ pacientes: Patient[];
   @Column({ type: 'varchar', length: 255, nullable: true })
   consultorio?: string;
 
+@Column({ type: 'varchar', length: 255, nullable: true })
+email?: string;
+
+
   @CreateDateColumn({ type: 'timestamp', name: 'created_at' })
   createdAt: Date;
 
   @UpdateDateColumn({ type: 'timestamp', name: 'updated_at' })
   updatedAt: Date;
+
+  @OneToMany(() => Cita, cita => cita.medico)
+  citas: Cita[];
 }

@@ -9,6 +9,17 @@ import {
 import { Patient } from '../../patients/entities/patient.entity';
 import { Medico } from '../../medicos/entities/medico.entity';
 
+export enum TipoSangreEnum {
+  O_POS = "O+",
+  O_NEG = "O-",
+  A_POS = "A+",
+  A_NEG = "A-",
+  B_POS = "B+",
+  B_NEG = "B-",
+  AB_POS = "AB+",
+  AB_NEG = "AB-",
+}
+
 @Entity('consultas')
 export class Consulta {
   @PrimaryGeneratedColumn()
@@ -21,7 +32,25 @@ export class Consulta {
   medico: Medico;
 
   @Column({ type: 'text' })
-  diagnostico: string;
+  motivoConsulta: string;
+
+  @Column({ type: 'text' })
+  sintomas: string;
+
+  @Column({
+    type: 'enum',
+    enum: TipoSangreEnum,
+  })
+  tipoSangre: TipoSangreEnum;
+
+  @Column({ type: 'text', nullable: true })
+  alergias?: string;
+
+  @Column({ type: 'float', nullable: true })
+  peso?: number;
+
+  @Column({ type: 'float', nullable: true })
+  estatura?: number;
 
   @Column({ type: 'text' })
   tratamiento: string;

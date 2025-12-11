@@ -1,15 +1,24 @@
-import { IsInt, IsNotEmpty, IsOptional, IsString } from 'class-validator';
+import { IsEnum, IsInt, IsNotEmpty, IsOptional, IsString, IsNumber } from "class-validator";
+import { TipoSangreEnum } from "../entities/consulta.entity";
 
 export class CreateConsultaDto {
   @IsInt()
   pacienteId: number;
 
-  @IsInt()
-  doctorId: number;
+  @IsString()
+  @IsNotEmpty()
+  motivoConsulta: string;
 
   @IsString()
   @IsNotEmpty()
-  diagnostico: string;
+  sintomas: string;
+
+  @IsEnum(TipoSangreEnum)
+  tipoSangre: TipoSangreEnum;
+
+  @IsOptional()
+  @IsString()
+  alergias?: string;
 
   @IsString()
   @IsNotEmpty()
@@ -18,4 +27,12 @@ export class CreateConsultaDto {
   @IsOptional()
   @IsString()
   observaciones?: string;
+
+  @IsOptional()
+  @IsNumber()
+  peso?: number;
+
+  @IsOptional()
+  @IsNumber()
+  estatura?: number;
 }

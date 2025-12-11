@@ -9,13 +9,13 @@ export class CreateCitaDto {
   @IsDateString()
   fechaCita?: string;
 
-  @IsNotEmpty()
+ @IsOptional()
   @IsNumber()
-  patientId: number;
+  patientId?: number
 
-  @IsNotEmpty()
+  @IsOptional()
   @IsNumber()
-  medicoId: number;
+  medicoId?: number;
 
   @IsOptional()
   @IsString()

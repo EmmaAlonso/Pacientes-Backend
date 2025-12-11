@@ -18,7 +18,8 @@ export class JwtStrategy extends PassportStrategy(Strategy) {
   validate(payload: any) {
     this.logger.debug(`Validating JWT payload: ${JSON.stringify(payload)}`);
 
-    const rol = String(payload.rol).toUpperCase();
+  // Aceptar ambos nombres de claim: `rol` (español) o `role` (inglés)
+  const rol = String(payload.rol || payload.role || '').toUpperCase();
 
     return {
       id: payload.sub,

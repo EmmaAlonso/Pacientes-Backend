@@ -1,4 +1,15 @@
-import { Controller, Get, Post, Body, Patch, Param, Delete, UseGuards, Req, BadRequestException } from '@nestjs/common';
+import {
+  Controller,
+  Get,
+  Post,
+  Body,
+  Patch,
+  Param,
+  Delete,
+  UseGuards,
+  Req,
+  BadRequestException,
+} from '@nestjs/common';
 import { MedicosService } from '../services/medicos.service';
 import { CreateMedicoDto } from '../dto/create-medico.dto';
 import { UpdateMedicoDto } from '../dto/update-medico.dto';
@@ -17,14 +28,21 @@ export class MedicosController {
     return this.medicosService.create(createMedicoDto);
   }
 
-  // ADMIN y MEDICO pueden ver la lista de médicos
+  // 🔹 ADMIN y MEDICO pueden ver la lista completa de médicos
   @Roles('ADMIN', 'MEDICO')
   @Get()
   findAll() {
     return this.medicosService.findAll();
   }
 
-  // Endpoint público de comprobación para verificar conectividad y baseURL
+  // 🔹 PACIENTES pueden ver lista básica de médicos (id, nombre, especialidad)
+  @Roles('PACIENTE', 'ADMIN', 'MEDICO')
+  @Get('public')
+  findPublic() {
+    return this.medicosService.findPublic();
+  }
+
+  // Endpoint de prueba
   @Get('ping')
   ping() {
     return { ok: true, path: '/medicos/ping' };
@@ -32,10 +50,9 @@ export class MedicosController {
 
   @Roles('ADMIN', 'MEDICO')
   @Get('me')
-me(@Req() req) {
-  return this.medicosService.findByUsuarioId(req.user.id);
-}
-
+  me(@Req() req) {
+    return this.medicosService.findByUsuarioId(req.user.id);
+  }
 
   @Roles('ADMIN', 'MEDICO')
   @Get(':id')

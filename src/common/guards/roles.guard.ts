@@ -37,7 +37,7 @@ export class RolesGuard implements CanActivate {
 
     // 🔹 Acepta tanto "rol" como "role" desde el JWT
     const userRole = String
-      (user.rol || user.role || '').toString().toUpperCase();
+      (user.role || user.rol || '').toString().toUpperCase();
 
     this.logger.debug(`User object from request: ${JSON.stringify(user)}`);
     this.logger.debug(`Detected user role: ${userRole}`);

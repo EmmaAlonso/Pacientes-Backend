@@ -35,6 +35,16 @@ export class PatientsController {
   }
 
   // ============================
+  // PACIENTE CONSULTA SUS DATOS
+  // ============================
+  @Roles('ADMIN', 'PACIENTE')
+  @Get('me')
+  async getMyInfo(@Req() req) {
+    const userId = req.user.id;
+    return this.patientsService.findByUserId(userId);
+  }
+
+  // ============================
   // LISTAR TODOS – ADMIN Y MEDICO
   // ============================
   @Roles('ADMIN', 'MEDICO')
@@ -58,13 +68,11 @@ export class PatientsController {
 
   // ============================
   // MÉDICO REGISTRA PACIENTES PRIVADOS
-  // Ruta correcta: POST /patients/register
   // ============================
   @Roles('MEDICO')
   @Post('register')
   registerPatient(@Body() dto: CreatePatientDto, @Req() req) {
-    const medicoId =
-      req.user.medicoId || req.user.medico?.id || req.user.id;
+    const medicoId = req.user.medicoId || req.user.medico?.id || req.user.id;
 
     if (!medicoId) {
       throw new BadRequestException('El médico no tiene ID válido');
@@ -74,22 +82,67 @@ export class PatientsController {
   }
 
   // ============================
-  // MÉDICO LISTA SUS PACIENTES
-  // Ruta: GET /patients/mine
+  // LISTA DE PACIENTES RELACIONADOS
   // ============================
-  @Roles('MEDICO')
+  @Roles('MEDICO', 'PACIENTE')
   @Get('mine')
   findMyPatients(@Req() req) {
-    const medicoId =
-      req.user.medicoId || req.user.medico?.id || req.user.id;
+    const role = req.user?.rol || req.user?.role;
 
+    if (role === 'MEDICO') {
+      const medicoId = req.user.medicoId || req.user.medico?.id || req.user.id;
+      return this.patientsService.findByMedico(medicoId);
+    }
+
+    if (role === 'PACIENTE') {
+      const userId = req.user?.id;
+      return this.patientsService.findByUserId(userId);
+    }
+
+    return this.patientsService.findAll();
+  }
+
+  // ============================
+  // LISTA DE PACIENTES PARA SELECTS
+  // ============================
+ @Roles('ADMIN', 'MEDICO', 'PACIENTE')
+@Get('select')
+async selectList(@Req() req) {
+  const role = req.user?.rol ?? req.user?.role ?? null;
+
+  if (!role) {
+    throw new ForbiddenException("No se pudo determinar el rol del usuario");
+  }
+
+  // PACIENTE: solo él mismo
+  if (role === 'PACIENTE') {
+    const userId = req.user?.id;
+    if (!userId) throw new BadRequestException("Usuario inválido");
+    const patient = await this.patientsService.findByUserId(userId);
+    return [patient];
+  }
+
+  // MÉDICO: solo sus pacientes
+  if (role === 'MEDICO') {
+    const medicoId = req.user?.medicoId || req.user?.medico?.id;
+    if (!medicoId) return [];
     return this.patientsService.findByMedico(medicoId);
   }
+
+  // ADMIN: todos los pacientes
+  if (role === 'ADMIN') {
+    return this.patientsService.findAll();
+  }
+
+  return [];
+}
+
+
 
   // ============================
   // ACTUALIZAR PACIENTE
   // ============================
-  @Roles('ADMIN', 'PACIENTE')
+  @Roles('ADMIN', 'PACIENTE', 'MEDICO')
   @Patch(':id')
   async update(
     @Param('id') id: string,
@@ -101,13 +154,27 @@ export class PatientsController {
       throw new BadRequestException('ID de paciente inválido');
     }
 
-    if (req.user.rol === 'PACIENTE') {
+    if (req.user.rol === 'PACIENTE' || req.user.rol === 'MEDICO') {
       const patient = await this.patientsService.findOne(numericId);
 
-      if (patient.usuario?.id !== req.user.id) {
-        throw new ForbiddenException(
-          'No tienes permiso para actualizar este paciente',
-        );
+      if (req.user.rol === 'PACIENTE') {
+        if (patient.usuario?.id !== req.user.id) {
+          throw new ForbiddenException(
+            'No tienes permiso para actualizar este paciente',
+          );
+        }
+      }
+
+      if (req.user.rol === 'MEDICO') {
+        const medicoId = req.user.medicoId || req.user.medico?.id || req.user.id;
+        if (!medicoId) {
+          throw new BadRequestException('El médico no tiene ID válido');
+        }
+        if (patient.medicoId !== medicoId) {
+          throw new ForbiddenException(
+            'No tienes permiso para actualizar este paciente',
+          );
+        }
       }
     }
 
