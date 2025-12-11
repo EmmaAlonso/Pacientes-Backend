@@ -10,7 +10,8 @@ import { Package } from '../../packages/entities/package.entity';
 import { Payment } from '../../payments/entities/payment.entity';
 import { Rol } from '../../common/enums/rol.enum';
 import { Patient } from '../../patients/entities/patient.entity'; // ✅ Nuevo import
-import { Medico } from '../../medicos/entities/medico.entity';   // ✅ Nuevo import
+import { Medico } from '../../medicos/entities/medico.entity'; // ✅ Nuevo import
+import { Log } from '../../logs/entities/log.entity';
 
 @Entity('usuarios')
 export class Usuario {
@@ -53,4 +54,7 @@ export class Usuario {
 
   @OneToMany(() => Medico, (medico) => medico.usuario)
   medicos: Medico[];
+
+  @OneToMany(() => Log, (log) => log.usuario)
+  logs: Log[];
 }
